@@ -1,0 +1,216 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/Gonav"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="false"
+    tools:context=".Go">
+
+
+    <LinearLayout
+        android:id="@+id/searchLayout"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:background="@color/splashscreen"
+        android:elevation="20dp"
+        android:orientation="vertical"
+        tools:ignore="MissingConstraints">
+
+        <FrameLayout
+            android:id="@+id/switchtextview"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginLeft="365dp"
+            android:layout_marginTop="20dp">
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/backbuttonContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginTop="-36dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/gobackbutton"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/remove_icon_1"
+                android:backgroundTint="@color/white">
+
+            </androidx.appcompat.widget.AppCompatButton>
+
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="80dp"
+                android:layout_marginLeft="43dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bikebuddy_ui_design">
+
+            </ImageView>
+
+
+        </FrameLayout>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="76dp"
+            android:layout_marginTop="-122dp">
+
+            <TextView
+                android:id="@+id/startinglocation"
+                android:layout_width="280dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/searchviewbar"
+                android:clickable="true"
+                android:elevation="20dp"
+                android:iconifiedByDefault="false"
+                android:paddingStart="10sp"
+                android:paddingTop="8sp"
+                android:queryHint="Your Location"
+                android:singleLine="true" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginLeft="76dp"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/destinedlocation"
+                android:layout_width="280dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/searchviewbar"
+                android:clickable="true"
+                android:elevation="20dp"
+                android:iconifiedByDefault="false"
+                android:paddingStart="10sp"
+                android:paddingTop="10sp"
+                android:queryHint="Where to?"
+                android:singleLine="true"
+                android:textAlignment="textStart" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/account_topbar_text"
+        android:layout_width="0dp"
+        android:layout_height="53dp"
+        android:background="@color/splashscreen"
+        android:paddingStart="80dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="80dp"
+        android:paddingBottom="18dp"
+        android:src="@drawable/topbar_logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/account_topbar_text">
+
+        <FrameLayout
+            android:id="@+id/mainScreenContainer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/splashscreen"
+            android:clickable="false">
+
+            <!-- Layout for Main Screen -->
+            <Button
+                android:id="@+id/exploreButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:backgroundTint="@color/splashscreen"
+                android:text="Explore"
+                android:textColor="@color/white" />
+
+        </FrameLayout>
+
+
+        <FrameLayout
+            android:id="@+id/sharedRoutesScreenContainer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/splashscreen">
+
+            <!-- Layout for SharedRoutesScreen -->
+            <Button
+                android:id="@+id/sharedRoutesButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:backgroundTint="@color/splashscreen"
+                android:onClick="showSharedRoutesDialog"
+                android:text="Shared Routes"
+                android:textColor="@color/white" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/searchButton"
+        android:layout_width="360dp"
+        android:layout_height="50dp"
+        android:layout_margin="15sp"
+        android:background="@drawable/searchviewicon"
+        android:drawableRight="@drawable/quantum_ic_search_grey600_24"
+        android:elevation="20dp"
+        android:iconifiedByDefault="false"
+        android:onClick="openSearchFragment"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:queryHint="Where to?"
+        android:text="Where to?"
+        android:textAlignment="viewStart"
+        android:textAllCaps="false"
+        android:textColor="#FF757575"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.313"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonLayout" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/recenterButton"
+        android:layout_width="160dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="36dp"
+        android:background="@drawable/recenter_btn_style"
+        android:contentDescription="Re-Center Button"
+        android:drawableLeft="@drawable/recenter_logo"
+        android:drawablePadding="25dp"
+        android:onClick="recenterMap"
+        android:paddingStart="15dp"
+        android:text="RE-CENTER"
+        android:textAlignment="viewStart"
+        android:textAllCaps="true"
+        android:textColor="@color/splashscreen"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"></androidx.appcompat.widget.AppCompatButton>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
