@@ -85,7 +85,6 @@ class Go : Fragment(), SearchListener, SearchFragment.SearchListener {
 
     }
 
-
     override fun onResume() {
         super.onResume()
 

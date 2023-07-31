@@ -7,14 +7,14 @@
     android:clickable="false"
     tools:context=".Go">
 
-
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/resetfrag"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="45dp"
+        android:layout_height="35dp"
         android:layout_marginStart="70dp"
-        android:layout_marginTop="70dp"
-        android:background="@drawable/remove_icon_1"
+        android:layout_marginTop="125dp"
+        android:visibility="gone"
+        android:background="@drawable/baseline_arrow_back_24"
         android:backgroundTint="@color/splashscreen"
         app:layout_constraintBottom_toTopOf="@+id/searchLayout"
         app:layout_constraintEnd_toStartOf="@+id/searchLayout"

@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
     private var bottomSheetDialog: BottomSheetDialog? = null
     private var destinationLatLng: LatLng? = null
     private var goNowButtonPressed: Boolean = false
-    private var locationUpdateInterval = 5000L // Update interval in milliseconds (15 seconds)
+    private var locationUpdateInterval = 5000L
     private var isLocationUpdateScheduled = false // To keep track of whether a location update is scheduled
 
     companion object {
@@ -531,6 +531,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
 
                                 runOnUiThread {
                                     drawRouteOnMap(decodedPoints)
+                                    // Update the distance and ETA TextViews in the Go fragment
+                                    val distance = routes.getJSONObject(0)
+                                        .getJSONArray("legs")
+                                        .getJSONObject(0)
+                                        .getJSONObject("distance")
+                                        .getString("text")
+
+                                    val duration = routes.getJSONObject(0)
+                                        .getJSONArray("legs")
+                                        .getJSONObject(0)
+                                        .getJSONObject("duration")
+                                        .getString("text")
+
+                                    updateGoFragmentViews(distance, duration)
                                 }
                             } else {
                                 runOnUiThread {
@@ -550,6 +564,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         }
     }
 
+    private fun updateGoFragmentViews(distance: String, duration: String) {
+        findViewById<TextView>(R.id.pedometertxt1)?.text = "Distance: $distance"
+        findViewById<TextView>(R.id.pedometertxt2)?.text = "ETA: $duration"
+    }
 
     private fun removeAllLayoutsApartFromMap() {
         // Hide or remove the views you want to remove
@@ -770,13 +788,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
     }
 
     private fun updateRoutePolyline() {
-        // Determine the destination LatLng
+
         determineDestinationLatLng()
 
         destinationLatLng?.let {
             // Fetch directions to the destination
             fetchDirectionsToDestination(it)
         }
+
     }
 
     private fun replaceFragment(fragment: Fragment) {
