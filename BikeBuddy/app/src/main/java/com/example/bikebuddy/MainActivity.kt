@@ -79,6 +79,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
     private var firstLocationMarker: Marker? = null
     private var currentPolyline: Polyline? = null
     private var bottomSheetDialog: BottomSheetDialog? = null
+    private var destinationLatLng: LatLng? = null
+    private var goNowButtonPressed: Boolean = false
+
 
     companion object {
         private const val LOCATION_REQUEST_CODE = 145
@@ -172,6 +175,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         setUpLocationCallback()
         startLocationUpdates()
         centerMapToUserLocation()
+        if (goNowButtonPressed && (areTextViewsFilled || !openedSearchFrag)) {
+            updateRoutePolyline()
+        }
     }
 
     private fun convertLocationToLatLng(location: String) {
@@ -307,6 +313,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         } else if (!toggleStatus && !openedSearchFrag) {
             openedSearchFrag = true
             checkForLocationPermission()
+            setDestinedLocationText()
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
                     val latLng = LatLng(location.latitude, location.longitude)
@@ -384,13 +391,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
                 it.dismiss()
             }
         }
-        startTurnByTurnNavigation()
-        // Remove all layouts apart from the map
-        removeAllLayoutsApartFromMap()
 
-        // Continue with any additional logic you want to perform after the button is clicked
+        updateRoutePolyline()
 
+        zoomInToCurrentLocation()
 
+        // Change the perspective to ensure that the route polyline is at the top
+        changePerspectiveForRoute()
+
+        // Remove the blue marker to mark the user's current location
+        removeCurrentLocationMarker()
+
+        // Set a flag to indicate that the "Go Now" button is pressed
+        goNowButtonPressed = true
       //  if (pedometerView == null) {
             // Inflate the activity_pedometer.xml layout
            // pedometerView = layoutInflater.inflate(R.layout.activity_pedometer, null)
@@ -400,17 +413,125 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         //setContentView(pedometerView)
     }
 
-
-    private fun startTurnByTurnNavigation() {
-        if ((startingTextViewText == null || destinedTextViewText == null) && openedSearchFrag) {
-            // Handle the case when the starting location or destined location is not set
-            showDialog("Error", "Please set both starting and destined locations.")
-            return
+    private fun zoomInToCurrentLocation() {
+        checkForLocationPermission()
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            location?.let {
+                val currentLatLng = LatLng(location.latitude, location.longitude)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 19f))
+            }
         }
-
-        // Fetch directions and draw the route on the map
-        fetchDirections(startingTextViewText!!, destinedTextViewText!!)
     }
+
+    private fun changePerspectiveForRoute() {
+        val cameraPosition = CameraPosition.Builder()
+            .target(mMap.cameraPosition.target)
+            .zoom(mMap.cameraPosition.zoom)
+            .tilt(90f) // Change this value to adjust the perspective
+            .bearing(mMap.cameraPosition.bearing)
+            .build()
+
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+    }
+
+    private fun removeCurrentLocationMarker() {
+        currentLocationMarker?.remove()
+    }
+
+
+    private fun determineDestinationLatLng() {
+        if (!openedSearchFrag) {
+            // Use the LatLng from the search view in the SearchFragment (stringQuery)
+            val placeFields = listOf(Place.Field.NAME, Place.Field.LAT_LNG)
+            val placeRequest = FetchPlaceRequest.builder(stringQuery!!, placeFields).build()
+
+            placesClient.fetchPlace(placeRequest).addOnSuccessListener { response: FetchPlaceResponse ->
+                val place = response.place
+                val latLng = place.latLng
+                if (latLng != null) {
+                    destinationLatLng = latLng
+                } else {
+                    showDialog("Location Not Found", "The location cannot be found or does not exist.")
+                }
+            }.addOnFailureListener { exception: Exception ->
+                showDialog("Location Not Found", "The location cannot be found or does not exist.")
+            }
+        } else if (!toggleStatus && openedSearchFrag){
+            // Use the LatLng from the destinedTextViewText in MainActivity
+            val geocoder = Geocoder(this)
+            try {
+                val addresses = geocoder.getFromLocationName(destinedTextViewText ?: "", 1)
+                if (addresses != null && addresses.isNotEmpty()) {
+                    val address = addresses[0]
+                    destinationLatLng = LatLng(address.latitude, address.longitude)
+                } else {
+                    showDialog("Location Not Found", "The location cannot be found or does not exist.")
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                showDialog("Error", "Failed to fetch location.")
+            }
+        }
+    }
+
+    private fun fetchDirectionsToDestination(destinationLatLng: LatLng) {
+        checkForLocationPermission()
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            location?.let {
+                val originLatLng = LatLng(location.latitude, location.longitude)
+                val apiKey = getString(R.string.google_directions_key)
+                val url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                        "origin=${originLatLng.latitude},${originLatLng.longitude}" +
+                        "&destination=${destinationLatLng.latitude},${destinationLatLng.longitude}" +
+                        "&key=$apiKey"
+
+                val request = Request.Builder()
+                    .url(url)
+                    .build()
+
+                val client = OkHttpClient()
+                client.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        runOnUiThread {
+                            showDialog("Error", "Failed to fetch directions.")
+                        }
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val responseData = response.body?.string()
+                        response.body?.close()
+
+                        try {
+                            val json = JSONObject(responseData)
+                            val routes = json.getJSONArray("routes")
+                            if (routes.length() > 0) {
+                                val points = routes.getJSONObject(0)
+                                    .getJSONObject("overview_polyline")
+                                    .getString("points")
+                                val decodedPoints = PolyUtil.decode(points)
+
+                                runOnUiThread {
+                                    drawRouteOnMap(decodedPoints)
+                                }
+                            } else {
+                                runOnUiThread {
+                                    showDialog("No Routes", "No routes found between the locations.")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            runOnUiThread {
+                                showDialog("Error", "Failed to parse response data.")
+                            }
+                        }
+                    }
+                })
+            } ?: run {
+                showDialog("Error", "Failed to get current location.")
+            }
+        }
+    }
+
+
     private fun removeAllLayoutsApartFromMap() {
         // Hide or remove the views you want to remove
         findViewById<Button>(R.id.searchButton).visibility = View.GONE
@@ -500,12 +621,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         // Calculate the padding to add to the bounds (optional)
         val padding = 20
 
-        // Move the camera to the bounds with padding
-        val cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding)
-        mMap.animateCamera(cameraUpdate)
+        if(!goNowButtonPressed){
+            // Move the camera to the bounds with padding
+            val cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding)
+            mMap.animateCamera(cameraUpdate)
+        }
     }
-
-
 
     private fun getAddressComponent(components: List<AddressComponent>?, type: String): String? {
         components?.forEach { component ->
@@ -621,9 +742,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         startLocationUpdates()
     }
 
+
     private fun isLocationEnabled(): Boolean {
         val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    private fun updateRoutePolyline() {
+        // Determine the destination LatLng
+        determineDestinationLatLng()
+
+        destinationLatLng?.let {
+            // Fetch directions to the destination
+            fetchDirectionsToDestination(it)
+        }
     }
 
     private fun replaceFragment(fragment: Fragment) {
