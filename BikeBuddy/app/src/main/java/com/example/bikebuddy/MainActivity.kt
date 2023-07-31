@@ -47,6 +47,8 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.location.Geocoder
+import android.os.Handler
+import android.os.Looper
 import android.view.ViewGroup
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Polyline
@@ -81,7 +83,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
     private var bottomSheetDialog: BottomSheetDialog? = null
     private var destinationLatLng: LatLng? = null
     private var goNowButtonPressed: Boolean = false
-
+    private var locationUpdateInterval = 5000L // Update interval in milliseconds (15 seconds)
+    private var isLocationUpdateScheduled = false // To keep track of whether a location update is scheduled
 
     companion object {
         private const val LOCATION_REQUEST_CODE = 145
@@ -355,6 +358,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         }
     }
 
+    private fun scheduleLocationUpdates() {
+        val locationUpdateHandler = Handler(Looper.getMainLooper())
+        locationUpdateHandler.postDelayed(
+            {
+                // Zoom in to the user's current location
+                zoomInToCurrentLocation()
+
+                // Change the perspective to ensure that the route polyline is at the top
+                changePerspectiveForRoute()
+
+                // Schedule the next location update
+                scheduleLocationUpdates()
+
+                updateRoutePolyline()
+            },
+            locationUpdateInterval
+        )
+    }
+
     private fun showBottomSheetLayout() {
         // Inflate the bottom sheet layout
         if (bottomSheetView == null) {
@@ -402,6 +424,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         // Remove the blue marker to mark the user's current location
         removeCurrentLocationMarker()
 
+        // Schedule location updates
+        scheduleLocationUpdates()
         // Set a flag to indicate that the "Go Now" button is pressed
         goNowButtonPressed = true
       //  if (pedometerView == null) {
