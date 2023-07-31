@@ -404,8 +404,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         // Set the text of the "textlocation" TextView to the value of destinedTextViewText
         textLocationTextView?.text = destinedTextViewText
     }
-    // Add a variable to keep track of the inflated view for activity_pedometer.xml
-    //  private var pedometerView: View? = null
 
     fun onGoNowButtonClick(view: View) {
         bottomSheetDialog?.let {
@@ -428,13 +426,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         scheduleLocationUpdates()
         // Set a flag to indicate that the "Go Now" button is pressed
         goNowButtonPressed = true
-      //  if (pedometerView == null) {
-            // Inflate the activity_pedometer.xml layout
-           // pedometerView = layoutInflater.inflate(R.layout.activity_pedometer, null)
-        //}
 
-        // Set the inflated view as the content view for MainActivity
-        //setContentView(pedometerView)
+        // Remove all layouts apart from the map
+        removeAllLayoutsApartFromMap()
+
     }
 
     private fun zoomInToCurrentLocation() {
@@ -563,7 +558,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SearchFragment.Sea
         findViewById<ImageView>(R.id.account_topbar_text).visibility = View.GONE
         findViewById<LinearLayout>(R.id.buttonLayout).visibility = View.GONE
         findViewById<LinearLayout>(R.id.searchLayout).visibility = View.GONE
-
+        findViewById<Button>(R.id.resetfrag).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.pedometertxt1).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.pedometertxt2).visibility = View.VISIBLE
     }
 
 

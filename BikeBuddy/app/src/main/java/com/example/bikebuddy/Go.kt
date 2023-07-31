@@ -49,6 +49,11 @@ class Go : Fragment(), SearchListener, SearchFragment.SearchListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val resetfragButton = view.findViewById<Button>(R.id.resetfrag)
+        resetfragButton.setOnClickListener {
+            val intent = Intent(requireContext(), MainActivity::class.java)
+            startActivity(intent)
+        }
 
         val gobackButton = view.findViewById<Button>(R.id.gobackbutton)
         gobackButton.setOnClickListener {
